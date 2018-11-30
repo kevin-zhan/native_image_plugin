@@ -10,8 +10,21 @@
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-  if ([@"getPlatformVersion" isEqualToString:call.method]) {
-    result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
+  if ([@"getNativeImage" isEqualToString:call.method]) {
+      NSDictionary* args = (NSDictionary *)call.arguments;
+      NSString* imageName = [args objectForKey:@"image_name"];
+      if (!imageName) {
+          result([FlutterError errorWithCode:@"nativeImage" message:@"Empty image name" details: nil]);
+          return;
+      }
+    
+      UIImage* image = [UIImage imageNamed:imageName];
+      if (image == nil) {
+          result([FlutterError errorWithCode:@"nativeImage" message:@"No such image" details: nil]);
+          return;
+      }
+      NSData* imageData = UIImagePNGRepresentation(image);
+      result(imageData);
   } else {
     result(FlutterMethodNotImplemented);
   }

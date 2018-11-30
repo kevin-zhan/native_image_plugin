@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:native_image_plugin/native_image_plugin.dart';
+import 'dart:typed_data';
 
 void main() => runApp(MyApp());
 
@@ -12,31 +12,25 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
+  Uint8List imageData;
 
   @override
   void initState() {
     super.initState();
-    initPlatformState();
+    loadNativeImage();
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
+  loadNativeImage() async {
+    var data;
     try {
-      platformVersion = await NativeImagePlugin.platformVersion;
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
+      data = await NativeImagePlugin.getNativeImage("go_pre");
+    } catch (exp) {
+      print((exp as PlatformException).message);
+      return;
     }
 
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
     setState(() {
-      _platformVersion = platformVersion;
+      imageData = data;
     });
   }
 
@@ -48,7 +42,18 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Plugin example app'),
         ),
         body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+          child: Column(
+
+            children: <Widget>[
+              Image(),
+              Text('Image from natvie'),
+              imageData == null ? Container() : Container(
+                width: 500,
+                height: 500,
+                child: Image.memory(imageData),
+              )
+            ],
+          ),
         ),
       ),
     );
